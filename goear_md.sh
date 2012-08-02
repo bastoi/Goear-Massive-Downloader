@@ -40,22 +40,6 @@ function get_song() {
 }
 
 
-#Test if it has an existing file
-val=${#@}
-if [ $val -gt 0 ]
-then
-    declare -a args=("$@")
-    FILE=${args[val-1]}
-else
-    echo "Error incorrect arguments"
-    help_message
-fi
-
-if [ ! -e $FILE ]
-then
-    echo "Non existing urls_file";
-    exit -3;
-fi
 
 # Read arguments and prepare strategy !!!
 while getopts "h" opt
@@ -79,6 +63,24 @@ EOF
 	    ;;
     esac
 done
+
+#Test if it has an existing file
+val=${#@}
+if [ $val -gt 0 ]
+then
+    declare -a args=("$@")
+    FILE=${args[val-1]}
+else
+    echo "Error incorrect arguments"
+    help_message
+fi
+
+if [ ! -e $FILE ]
+then
+    echo "Non existing urls_file";
+    exit -3;
+fi
+
 
 #Read de different urls putted in a line by line url file
 if [ ! -z $FILE ]
