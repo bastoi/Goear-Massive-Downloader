@@ -42,7 +42,7 @@ function get_song() {
 
 
 # Read arguments and prepare strategy !!!
-while getopts "h" opt
+while getopts "hu:" opt
 do
     case $opt in
 	h)
@@ -50,6 +50,10 @@ do
 	    exit 0;
 	    ;;
 
+	u)
+	    get_song $OPTARG
+	    exit 0;
+	    ;;
 	?)
 	    cat <<EOF 
 
