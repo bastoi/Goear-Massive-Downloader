@@ -33,6 +33,7 @@ function help_i_mode {
 Options:
    h -> shows this help message
    s song_name -> search this song
+   q -> quit
 EOF
 }
 
@@ -48,16 +49,25 @@ function get_song {
     wget $mp3url -O "$artist-$title.mp3"
 }
 
+function search_song {
+    # $song not formated !!!
+    results=`wget -qO- www.goear.com/search/$1 | grep "<li >"`
+    echo $results
+}
+
 function command_parser() {
     case $1 in
 	s)
 	    echo "search song, not yet implemented"
+	    printf "Enter song name: "
+	    read song
+	    search_song $song
 	    ;;
 	h)
 	    help_i_mode
 	    ;;
 	?)
-	    echo "Unknown command"
+	    echo "Unknown option"
 	    help_i_mode
 	    ;;
     esac
@@ -81,6 +91,7 @@ EOF
 	printf $IMS
 	read input
     done
+    echo "bye!"
     # 
     #results=`wget -qO- www.goear.com/search/manel-aniversari | grep "<li >"`
 }
