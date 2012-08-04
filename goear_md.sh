@@ -7,8 +7,7 @@
 # Version: 0.0.1
 #
 
-# Download massively music from goear.com, it's your responsability the usage
-# that you make with this script.
+# Download music massively from goear.com, it's your responsibility the usage that you make of this script.
 #
 # ENJOY IT !
 #
@@ -28,7 +27,7 @@ goear [args] urls_file
 EOF
 }
 
-function help_i_mode {
+function show_options {
     cat <<EOF
 Options:
    h -> shows this help message
@@ -38,8 +37,6 @@ EOF
 }
 
 function get_song {
-    #$1 = url
-
     fileid=`echo $1 | cut -d '/' -f 5`
     xmlurl="http://www.goear.com/tracker758.php?f="$fileid
     infoline=`wget -qO- $xmlurl | grep ".mp3"`
@@ -51,8 +48,53 @@ function get_song {
 
 function search_song {
     # $song not formated !!!
-    results=`wget -qO- www.goear.com/search/$1 | grep "<li >"`
-    echo $results
+    song=`echo $1 | awk '{gsub(/\ /, "-"); lower_string = tolower($0); print lower_string}'`
+    results=`wget -qO- www.goear.com/search/$song | grep "<li >"`
+
+    if [ -z "$results" ]; then
+	echo ""
+    else
+	# Get all the logic urls to possible songs with one search
+	songs=`echo $results | awk '{
+
+        html_info = $0
+        while (index(html_info, "href=\"") != 0) {
+            // href code
+            start = index(html_info, "href=\"") + length("href=\"")
+            html_info = substr(html_info, start)
+            end = index(html_info, "\"")
+            href = substr(html_info, 0, end - 1)
+
+            // song name code
+	    start = index(html_info, "class=\"song\">") + length("class=\"song\">")
+	    html_info = substr(html_info, start)
+	    end = index(html_info, "</")
+	    song = substr(html_info, 0, end - 1)
+	    gsub(/\ /, "_", song)
+
+            // group code
+            start = index(html_info, "class=\"group\">") + length("class=\"group\">")
+	    html_info = substr(html_info, start)
+	    end = index(html_info, "</")
+	    group = substr(html_info, 0, end - 1)
+	    gsub(/\ /, "_", group)
+
+            // length code
+	    start = index(html_info, "class=\"length\">") + length("class=\"length\">")
+	    html_info = substr(html_info, start)
+	    end = index(html_info, "</")
+	    song_len = substr(html_info, 0, end - 1)
+
+	    options[href] = href " " song " " group " " song_len
+        }
+    }
+    END {for (option in options) {
+		printf "%s ", options[option]
+	    }
+	    printf "\n"
+	    }'`
+	echo "$songs"
+    fi
 }
 
 function command_parser() {
@@ -61,14 +103,31 @@ function command_parser() {
 	    echo "search song, not yet implemented"
 	    printf "Enter song name: "
 	    read song
-	    search_song $song
+	    song_meta=`search_song "$song"`
+	    if [ -z "$song_meta" ]; then
+		echo "Song not found"
+	    else
+		echo "Select some source"
+		song_meta=( $song_meta )
+		declare -A song_dict
+		SONGS_LIST=
+		total_words=`echo ${song_meta[@]} | wc -w`
+		for i in `seq 0 4 $(( total_words-1 ))`; do
+		    SONGS_LIST=`echo $SONGS_LIST ${song_meta[i+1]}-${song_meta[i+2]}-${song_meta[i+3]}`
+		done
+		
+		select SONG in $SONGS_LIST; do
+		    get_song "http://www.goear.com/"${song_meta[(( ($REPLY-1)*4 ))]}
+		    break
+		done
+	    fi
 	    ;;
 	h)
-	    help_i_mode
+	    show_options
 	    ;;
 	?)
 	    echo "Unknown option"
-	    help_i_mode
+	    show_options
 	    ;;
     esac
 }
@@ -87,13 +146,11 @@ EOF
     printf $IMS
     read input
     while [ "$input" != "q" ]; do
-	command_parser $input
+	command_parser "$input"
 	printf $IMS
 	read input
     done
     echo "bye!"
-    # 
-    #results=`wget -qO- www.goear.com/search/manel-aniversari | grep "<li >"`
 }
 
 # Read arguments and prepare strategy !!!
