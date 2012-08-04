@@ -23,7 +23,8 @@ goear [args] urls_file
 
      options:
        -h: this help message
-       -u url: download only this url [not yet implemented]
+       -u url: download only this url
+       -i: enter to interactive mode, search & download in the application
 EOF
 }
 
@@ -42,7 +43,7 @@ function get_song() {
 
 
 # Read arguments and prepare strategy !!!
-while getopts "hu:" opt
+while getopts "hu:i" opt
 do
     case $opt in
 	h)
@@ -52,6 +53,10 @@ do
 
 	u)
 	    get_song $OPTARG
+	    exit 0;
+	    ;;
+	i)
+	    echo "Interactive mode ON !"
 	    exit 0;
 	    ;;
 	?)
