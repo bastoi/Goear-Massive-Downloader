@@ -28,7 +28,15 @@ goear [args] urls_file
 EOF
 }
 
-function get_song() {
+function help_i_mode {
+    cat <<EOF
+Options:
+   h -> shows this help message
+   s song_name -> search this song
+EOF
+}
+
+function get_song {
     #$1 = url
 
     fileid=`echo $1 | cut -d '/' -f 5`
@@ -40,7 +48,42 @@ function get_song() {
     wget $mp3url -O "$artist-$title.mp3"
 }
 
+function command_parser() {
+    case $1 in
+	s)
+	    echo "search song, not yet implemented"
+	    ;;
+	h)
+	    help_i_mode
+	    ;;
+	?)
+	    echo "Unknown command"
+	    help_i_mode
+	    ;;
+    esac
+}
 
+function interactive_m {
+    IMS=" > "
+    cat <<EOF
+Welcome to Goear Massive Downloader interactive mode !!!
+Developed by: Joel Badia Escolà
+
+  Type h, for a list of commands.
+
+ENJOY IT !
+
+EOF
+    printf $IMS
+    read input
+    while [ "$input" != "q" ]; do
+	command_parser $input
+	printf $IMS
+	read input
+    done
+    # 
+    #results=`wget -qO- www.goear.com/search/manel-aniversari | grep "<li >"`
+}
 
 # Read arguments and prepare strategy !!!
 while getopts "hu:i" opt
@@ -57,6 +100,7 @@ do
 	    ;;
 	i)
 	    echo "Interactive mode ON !"
+	    interactive_m
 	    exit 0;
 	    ;;
 	?)
