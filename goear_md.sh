@@ -115,10 +115,19 @@ function command_parser() {
 		for i in `seq 0 4 $(( total_words-1 ))`; do
 		    SONGS_LIST=`echo $SONGS_LIST ${song_meta[i+1]}-${song_meta[i+2]}-${song_meta[i+3]}`
 		done
+
+		SONGS_LIST="$SONGS_LIST Quit"
 		
 		select SONG in $SONGS_LIST; do
-		    get_song "http://www.goear.com/"${song_meta[(( ($REPLY-1)*4 ))]}
-		    break
+		    #get_song "http://www.goear.com/"${song_meta[(( ($REPLY-1)*4 ))]}
+		    case $SONG in
+			"Quit")
+			    break
+			    ;;
+			*)
+			   get_song "http://www.goear.com/"${song_meta[(( ($REPLY-1)*4 ))]}
+			   ;;
+		    esac
 		done
 	    fi
 	    ;;
